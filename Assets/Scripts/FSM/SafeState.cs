@@ -55,4 +55,9 @@ public class SafeState<T> : IState<T> where T : class
         }
         _wrappedState.Exit(player);
     }
+
+    public string GetName()
+    {
+        return _wrappedState.GetName();
+    }
 }

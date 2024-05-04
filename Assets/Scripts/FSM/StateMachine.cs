@@ -34,7 +34,7 @@ public class StateMachine<T>
         CurrentState = newState;
         CurrentState.Enter(_controller);
         
-        Debug.Log($"State changed to {newState.GetType().Name}.");        
+        Debug.Log($"State changed to {CurrentState.GetName()}.");        
     }
 
     public void ChangeState(IState<T> newState)
