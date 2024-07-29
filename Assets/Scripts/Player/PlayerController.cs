@@ -9,10 +9,12 @@ public class PlayerController : MonoBehaviour
     public Animator anim;
     public Transform tr;
     public Collider coll;
+    public RaycastHit hit;
+    public RaycastHit hit2;
     public JoystickPanel joystickPanel;
     public CameraController cameraController;
 
-    public bool IsActive;
+    public bool IsActive { get; set; }
     public bool isGrounded;
     public int idleTime;
     public float waitTime = 2f;
@@ -66,8 +68,8 @@ public class PlayerController : MonoBehaviour
         stateMachine.CurrentState.Update(this);
 
         HandleInputMode();
-        RotateCharacter();
-        HandleRunButton();
+        HandleRotation();
+        HandleUIButton();
         UpdateGroundedState();
     }
 
@@ -106,12 +108,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void HandleRunButton()
+    void HandleUIButton()
     {
         if (!isMobileMode && Input.GetKey(KeyCode.LeftShift))
         {
             IsRun = true;
             RunButtonHoldTimer = RunButtonHoldTime;
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            IsCrawl = !IsCrawl;
         }
     }
 
@@ -124,15 +131,19 @@ public class PlayerController : MonoBehaviour
     {
         if (isMobileMode && inputName.ToLower() == "movement")
         {
-            PlayerForce = new Vector3(input.x, 0, input.y);            
+            PlayerForce = new Vector3(input.x, 0, input.y);
         }
     }
 
     void HandleJoystickInput()
     {
-        if (PlayerForce != Vector3.zero)
+        float x = joystickPanel.draggingTarget.x;
+        float z = joystickPanel.draggingTarget.y;
+        PlayerForce = new Vector3(x, 0, z);
+
+        if (joystickPanel.draggingTarget == Vector2.zero)
         {
-            stateMachine.ChangeState(stateMap[State.Move]);
+            PlayerForce = Vector3.zero;
         }
     }
 
@@ -145,6 +156,10 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             IsJump = true;
+        }
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            IsCrawl = !IsCrawl;
         }
     }
 
@@ -172,10 +187,10 @@ public class PlayerController : MonoBehaviour
                 RunButtonHoldTimer = RunButtonHoldTime;
                 break;
             case "crawl":
-                IsCrawl = true;
+                IsCrawl = !IsCrawl;
                 break;
             case "climb":
-                IsClimb = true;
+                IsClimb = !IsClimb;
                 break;
             default:
                 break;
@@ -192,9 +207,9 @@ public class PlayerController : MonoBehaviour
     private void UpdateGroundedState()
     {
         if (Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * 0.1f + transform.forward * 0.08f, Vector3.down, 0.07f)
-        || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * 0.1f + transform.forward * -0.08f, Vector3.down, 0.07f)
-        || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * -0.1f + transform.forward * 0.08f, Vector3.down, 0.07f)
-        || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * -0.1f + transform.forward * -0.08f, Vector3.down, 0.07f))
+    || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * 0.1f + transform.forward * -0.08f, Vector3.down, 0.07f)
+    || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * -0.1f + transform.forward * 0.08f, Vector3.down, 0.07f)
+    || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * -0.1f + transform.forward * -0.08f, Vector3.down, 0.07f))
         {
             isGrounded = true;
             coll.material.dynamicFriction = 1;
@@ -223,6 +238,14 @@ public class PlayerController : MonoBehaviour
     public void Jump(float jumpforce)
     {
         rb.AddForce(Vector3.up * jumpforce + (tr.forward * anim.GetFloat("run") * 0.125f), ForceMode.Impulse);
+    }
+
+    void HandleRotation()
+    {
+        if (stateMachine.CurrentState != stateMap[State.Crawl])
+        {
+            RotateCharacter();
+        }
     }
 
     #region FSM
