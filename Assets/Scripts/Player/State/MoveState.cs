@@ -17,7 +17,7 @@ public class MoveState : State<PlayerController>
     {
         player.isGrounded = Physics.Raycast(player.tr.position, Vector3.down, 0.1f);
         HandleMovement(player);
-        if (!player.isMobileMode) // PC 모드에서만 키보드 입력 처리
+        if (!player.isMobileMode)
         {
             HandleKeyboardMovement(player);
         }
@@ -29,7 +29,6 @@ public class MoveState : State<PlayerController>
 
     private void HandleRunState(PlayerController player)
     {
-        // Run 상태 자동 해제
         if (player.RunButtonHoldTimer > 0)
         {
             player.RunButtonHoldTimer -= Time.deltaTime;
@@ -39,16 +38,15 @@ public class MoveState : State<PlayerController>
             }
         }
 
-        // Shift 키나 Run 버튼으로 달리기 처리
         if ((Input.GetKey(KeyCode.LeftShift) || player.IsRun) && player.RunAnimSpeed < 30)
         {
             player.RunAnimSpeed++;
-            player.anim.SetFloat("Speed", 1f); // 달리기 애니메이션
+            player.anim.SetFloat("Speed", 1f);
         }
         else if ((!Input.GetKey(KeyCode.LeftShift) || !player.IsRun) && player.RunAnimSpeed > 0)
         {
             player.RunAnimSpeed--;
-            player.anim.SetFloat("Speed", 0.5f); // 걷기 애니메이션
+            player.anim.SetFloat("Speed", 0.5f);
         }
     }
 
@@ -59,11 +57,11 @@ public class MoveState : State<PlayerController>
 
     private void HandleMovement(PlayerController player)
     {
-        Vector3 moveDirection = new Vector3(player.PlayerForce.x, 0, player.PlayerForce.z) * player.moveSpeed; // y축 값을 0으로 고정
+        Vector3 moveDirection = new Vector3(player.PlayerForce.x, 0, player.PlayerForce.z) * player.moveSpeed;
         player.rb.velocity = new Vector3(moveDirection.x, player.rb.velocity.y, moveDirection.z);
         player.PlayerForce = player.rb.velocity;
         player.anim.SetFloat("walk", player.PlayerForce.magnitude);
-        player.anim.SetFloat("run", player.RunAnimSpeed);        
+        player.anim.SetFloat("run", player.RunAnimSpeed);
     }
 
     private void HandleKeyboardMovement(PlayerController player)

@@ -23,7 +23,7 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
     private Vector2 parentPosition;
     private Vector3 relativeForward;
     private float maxDisplacement;
-    private Vector2 draggingTarget;
+    public Vector2 draggingTarget { get; private set; }
 
     private void Start()
     {
@@ -114,6 +114,7 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
         {
             joystickImage.transform.localPosition = Vector3.zero;
         }
+        draggingTarget = Vector2.zero;
         ReturnResult(Vector2.zero);
     }
 

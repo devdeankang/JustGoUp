@@ -43,6 +43,15 @@ public abstract class State<T> : IState<T> where T : class
         }
 
         // Change Crawl state
-
+        if (player.anim.GetInteger("up") == 4 && player.IsCrawl)
+        {
+            player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Crawl]);
+        }
+        // Exit Crawl State
+        else if (player.anim.GetInteger("up") == 3 && !player.IsCrawl)
+        {
+            player.anim.SetInteger("up", 4);
+            player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Idle]);
+        }
     }
 }
