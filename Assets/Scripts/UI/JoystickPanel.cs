@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -7,12 +5,10 @@ using UnityEngine.UI;
 
 public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [Header("General Settings")]
     public string inputName;
     public float draggableRadiusModifier = 0;
     public Transform relativeTransform;
 
-    [Header("Events Settings")]
     public OnDragBeginEvent beginDragEvent;
     public OnResultEvent dragEvent;
     public Sprite analogImage;
@@ -24,6 +20,9 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
     private Vector3 relativeForward;
     private float maxDisplacement;
     public Vector2 draggingTarget { get; private set; }
+
+    public float Horizontal => draggingTarget.x;
+    public float Vertical => draggingTarget.y;
 
     private void Start()
     {
@@ -71,6 +70,9 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
 
     public override void OnPointerDown(PointerEventData eventData)
     {
+        Debug.Log("JoystickPanel: OnPointerDown");
+        base.OnPointerDown(eventData);
+
         parentPosition = transform.position;
         beginDragEvent?.Invoke(inputName);
 
@@ -83,13 +85,23 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
 
     public override void OnPointerUp(PointerEventData eventData)
     {
+        Debug.Log("JoystickPanel: OnPointerUp");
+        base.OnPointerUp(eventData);
+
         OnEndDrag(eventData);
     }
 
-    public override void OnBeginDrag(PointerEventData eventData) { }
+    public override void OnBeginDrag(PointerEventData eventData)
+    {
+        Debug.Log("JoystickPanel: OnBeginDrag");
+        base.OnBeginDrag(eventData);
+    }
 
     public override void OnDrag(PointerEventData eventData)
     {
+        Debug.Log("JoystickPanel: OnDrag");
+        base.OnDrag(eventData);
+
         Vector2 relativePosition = eventData.position - parentPosition;
         if (relativePosition.magnitude > maxDisplacement)
         {
@@ -110,6 +122,9 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
 
     public override void OnEndDrag(PointerEventData eventData)
     {
+        Debug.Log("JoystickPanel: OnEndDrag");
+        base.OnEndDrag(eventData);
+
         if (joystickImage != null)
         {
             joystickImage.transform.localPosition = Vector3.zero;
