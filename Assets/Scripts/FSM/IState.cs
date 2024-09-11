@@ -24,30 +24,26 @@ public abstract class State<T> : IState<T> where T : class
 
     public void HandleChangeState(PlayerController player)
     {
-        // Change MoveState        
-        if ((Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0) ||
-        (player.PlayerForce.x != 0 || player.PlayerForce.z != 0))
+        Vector3 moveVector = InputManager.Instance.CurrentMoveVector;
+
+        if (moveVector != Vector3.zero || (player.PlayerForce.x != 0 || player.PlayerForce.z != 0))
         {
             player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Move]);
         }
         else
         {
-            // Change IdleState
             player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Idle]);
         }
 
-        // Change JumpState
         if (player.IsJump && player.isGrounded)
         {
             player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Jump]);
         }
 
-        // Change Crawl state
         if (player.anim.GetInteger("up") == 4 && player.IsCrawl)
         {
             player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Crawl]);
         }
-        // Exit Crawl State
         else if (player.anim.GetInteger("up") == 3 && !player.IsCrawl)
         {
             player.anim.SetInteger("up", 4);

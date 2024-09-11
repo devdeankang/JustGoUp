@@ -19,14 +19,13 @@ public class PlayerController : MonoBehaviour
     public int idleTime;
     public float waitTime = 2f;
     public float walkSpeed = 0.5f;
-    public float runSpeed = 1.5f;
+    public float runSpeed = 1.0f;
     public float moveSpeed;
 
     public Vector3 PlayerForce { get; set; }
     public float rotationSpeed = 5f;
 
     public bool isMobileMode = true;
-    float groundCheckDistance = 0.1f;
     public float rayCorrection = 0.025f;
     public StateMachine<PlayerController> stateMachine;
     public Dictionary<State, IState<PlayerController>> stateMap;
@@ -59,17 +58,14 @@ public class PlayerController : MonoBehaviour
         IsActive = true;
         RunAnimSpeed = 0;
         RunButtonHoldTime = 0.1f;
-        RunButtonHoldTimer = 0f;
-        if (joystickPanel != null) joystickPanel.dragEvent.AddListener(SetJoystick);
+        RunButtonHoldTimer = 0f;        
     }
 
     private void Update()
     {
         stateMachine.CurrentState.Update(this);
 
-        HandleInputMode();
         HandleRotation();
-        HandleUIButton();
         UpdateGroundedState();
     }
 
@@ -78,122 +74,12 @@ public class PlayerController : MonoBehaviour
         stateMachine.CurrentState.FixedUpdate(this);
     }
 
-    void HandleInputMode()
-    {
-        if (Input.GetKeyDown(KeyCode.F3))
-        {
-            SwitchToPCMode();
-        }
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            SwitchToMobileMode();
-        }
-
-        if (isMobileMode)
-        {
-            HandleJoystickInput();
-        }
-        else
-        {
-            HandleKeyboardInput();
-        }
-    }
-
     void RotateCharacter()
     {
         if (PlayerForce != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(PlayerForce);
             tr.rotation = Quaternion.Slerp(tr.rotation, targetRotation, Time.deltaTime * rotationSpeed);
-        }
-    }
-
-    void HandleUIButton()
-    {
-        if (!isMobileMode && Input.GetKey(KeyCode.LeftShift))
-        {
-            IsRun = true;
-            RunButtonHoldTimer = RunButtonHoldTime;
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-        {
-            IsCrawl = !IsCrawl;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (joystickPanel != null) joystickPanel.dragEvent.RemoveListener(SetJoystick);
-    }
-
-    public void SetJoystick(string inputName, Vector2 input)
-    {
-        if (isMobileMode && inputName.ToLower() == "movement")
-        {
-            PlayerForce = new Vector3(input.x, 0, input.y);
-        }
-    }
-
-    void HandleJoystickInput()
-    {
-        float x = joystickPanel.draggingTarget.x;
-        float z = joystickPanel.draggingTarget.y;
-        PlayerForce = new Vector3(x, 0, z);
-
-        if (joystickPanel.draggingTarget == Vector2.zero)
-        {
-            PlayerForce = Vector3.zero;
-        }
-    }
-
-    void HandleKeyboardInput()
-    {
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-        PlayerForce = new Vector3(x, 0, z);
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            IsJump = true;
-        }
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-        {
-            IsCrawl = !IsCrawl;
-        }
-    }
-
-    void SwitchToPCMode()
-    {
-        isMobileMode = false;
-        if (joystickPanel != null) joystickPanel.gameObject.SetActive(false);
-    }
-
-    void SwitchToMobileMode()
-    {
-        isMobileMode = true;
-        if (joystickPanel != null) joystickPanel.gameObject.SetActive(true);
-    }
-
-    public void SetInput(string inputName, Vector2 direction)
-    {
-        switch (inputName.ToLower())
-        {
-            case "jump":
-                IsJump = true;
-                break;
-            case "run":
-                IsRun = true;
-                RunButtonHoldTimer = RunButtonHoldTime;
-                break;
-            case "crawl":
-                IsCrawl = !IsCrawl;
-                break;
-            case "climb":
-                IsClimb = !IsClimb;
-                break;
-            default:
-                break;
         }
     }
 

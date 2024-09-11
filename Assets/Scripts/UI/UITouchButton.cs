@@ -1,6 +1,4 @@
 using SuperMobileController;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,20 +6,15 @@ using UnityEngine.UI;
 
 public class UITouchButton : UIControl
 {
-    [Header("General Settings")]
     public string inputName;
+    public OnResultEvent resultEvent;
+    public OnResultEvent beginTouchEvent;
 
-    [Header("Result Callback Settings")]
-    public OnResultEvent resultEvent;  //Callback for end drag / end touch
-    public OnResultEvent beginTouchEvent;  //Callback on touch begin
-
-    [Header("Skill Button Settings")]
-    public float cooldownSecond = 2f; //Cooldown of the button
-    public bool canCancel = true; //Is cancel available for this button
-    public int quantityLeft = -1; //Quantity left for this button to be used
+    public float cooldownSecond = 2f;
+    public bool canCancel = true;
+    public int quantityLeft = -1;
     public Sprite buttonImage;
 
-    //private variables
     private GameObject[] allCancelAreas;
     private Image cooldownImage;
     private Image disableImage;
@@ -31,6 +24,8 @@ public class UITouchButton : UIControl
     private float currentCoolDown = 0;
     private Image buttonInnerImage;
     private bool isButtonHeld = false;
+
+    public bool IsPressed => isButtonHeld;
 
     void Start()
     {
@@ -75,28 +70,21 @@ public class UITouchButton : UIControl
 
             if (cooldownText != null)
             {
-                if (currentCoolDown > 0)
-                {
-                    cooldownText.text = currentCoolDown.ToString("0.0");
-                }
-                else
-                {
-                    cooldownText.text = "";
-                }
+                cooldownText.text = currentCoolDown > 0 ? currentCoolDown.ToString("0.0") : "";
             }
         }
 
         if (isButtonHeld && isEnabled && currentCoolDown <= 0)
         {
-            if (resultEvent != null)
-            {
-                resultEvent.Invoke(inputName, new Vector2(transform.position.x, transform.position.y));
-            }
+            resultEvent?.Invoke(inputName, new Vector2(transform.position.x, transform.position.y));
         }
     }
 
     public override void OnPointerDown(PointerEventData eventArgs)
     {
+        Debug.Log("UITouchButton: OnPointerDown");
+        base.OnPointerDown(eventArgs);
+
         if (!isEnabled || currentCoolDown > 0) return;
 
         if (canCancel)
@@ -105,15 +93,14 @@ public class UITouchButton : UIControl
         }
 
         isButtonHeld = true;
-
-        if (beginTouchEvent != null)
-        {
-            beginTouchEvent.Invoke(inputName, new Vector2(transform.position.x, transform.position.y));
-        }
+        beginTouchEvent?.Invoke(inputName, new Vector2(transform.position.x, transform.position.y));
     }
 
     public override void OnPointerUp(PointerEventData eventArgs)
     {
+        Debug.Log("UITouchButton: OnPointerUp");
+        base.OnPointerUp(eventArgs);
+
         if (!isEnabled || currentCoolDown > 0) return;
 
         if (canCancel)
@@ -126,7 +113,6 @@ public class UITouchButton : UIControl
         if (eventArgs != null && eventArgs.pointerEnter != null)
         {
             CancelArea cancelButton = eventArgs.pointerEnter.GetComponent<CancelArea>();
-            
             if (cancelButton != null) return;
         }
 
@@ -148,10 +134,7 @@ public class UITouchButton : UIControl
 
     private void ReturnResult(Vector2 relativePosition)
     {
-        if (resultEvent != null)
-        {
-            resultEvent.Invoke(inputName, relativePosition);
-        }
+        resultEvent?.Invoke(inputName, relativePosition);
 
         if (quantityLeft > 0)
         {
@@ -169,14 +152,7 @@ public class UITouchButton : UIControl
         this.isEnabled = isEnabled;
         if (disableImage != null)
         {
-            if (isEnabled)
-            {
-                disableImage.enabled = false;
-            }
-            else
-            {
-                disableImage.enabled = true;
-            }
+            disableImage.enabled = !isEnabled;
         }
     }
 
@@ -184,14 +160,7 @@ public class UITouchButton : UIControl
     {
         quantityLeft = quantity;
         quantityText.text = quantity.ToString();
-        if (quantity != 0)
-        {
-            SetEnabled(true);
-        }
-        else
-        {
-            SetEnabled(false);
-        }
+        SetEnabled(quantity != 0);
     }
 
     public void SetCoolDown(float seconds)
@@ -203,5 +172,23 @@ public class UITouchButton : UIControl
     {
         buttonImage = image;
         buttonInnerImage.sprite = image;
+    }
+
+    public override void OnBeginDrag(PointerEventData eventArgs)
+    {
+        Debug.Log("UITouchButton: OnBeginDrag");
+        base.OnBeginDrag(eventArgs);
+    }
+
+    public override void OnEndDrag(PointerEventData eventArgs)
+    {
+        Debug.Log("UITouchButton: OnEndDrag");
+        base.OnEndDrag(eventArgs);
+    }
+
+    public override void OnDrag(PointerEventData eventData)
+    {
+        Debug.Log("UITouchButton: OnDrag");
+        base.OnDrag(eventData);
     }
 }
