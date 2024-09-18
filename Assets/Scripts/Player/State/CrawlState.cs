@@ -6,14 +6,42 @@ using static UnityEngine.PlayerLoop.PreUpdate;
 
 public class CrawlState : State<PlayerController>
 {
+    PlayerController player;
     bool canUpdate;
     float delayTime = 0.5f;
+
     public override void Enter(PlayerController player)
     {
+        this.player = player;
         canUpdate = false;
         player.anim.SetInteger("up", 3);
         player.rayCorrection = 0.2f;
 
+        InputManager.Instance.CrawlPressed += HandleCrawlInput;
+
+        HandleCrawlInput();
+    }
+
+    public override void Update(PlayerController player)
+    {
+        if (canUpdate)
+        {
+            HandleChangeState(player);
+        }
+    }
+
+    public override void FixedUpdate(PlayerController player)
+    {
+        
+    }
+
+    public override void Exit(PlayerController player)
+    {
+        InputManager.Instance.CrawlPressed -= HandleCrawlInput;
+    }
+
+    private void HandleCrawlInput()
+    {
         if (player.anim.GetInteger("up") == 3 && player.PlayerForce != Vector3.zero)
         {
             player.tr.rotation = Quaternion.LookRotation(player.PlayerForce, Vector3.up);
@@ -23,6 +51,7 @@ public class CrawlState : State<PlayerController>
         {
             player.rb.AddForce(player.tr.forward * 0.05f, ForceMode.Impulse);
         }
+
         if (!player.isGrounded && Input.GetAxis("Vertical") < -0.01f)
         {
             player.rb.AddForce(player.tr.forward * -0.05f, ForceMode.Impulse);
@@ -48,24 +77,6 @@ public class CrawlState : State<PlayerController>
             player.rb.velocity = player.PlayerForce * player.anim.GetFloat("speed");
         }
         player.StartCoroutine(CrawlDelay());
-    }
-
-    public override void Update(PlayerController player)
-    {
-        if (canUpdate)
-        {
-            HandleChangeState(player);
-        }
-    }
-
-    public override void FixedUpdate(PlayerController player)
-    {
-        
-    }
-
-    public override void Exit(PlayerController player)
-    {
-
     }
 
     IEnumerator CrawlDelay()

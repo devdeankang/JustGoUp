@@ -2,32 +2,46 @@ using UnityEngine;
 
 public class MoveState : State<PlayerController>
 {
+    PlayerController player;
+
     public override void Enter(PlayerController player)
     {
+        this.player = player;
+        InputManager.Instance.MoveInput += HandleMoveInput;
+        InputManager.Instance.RunPressed += HandleRunInput;
     }
 
     public override void Update(PlayerController player)
     {
         HandleChangeState(player);
-        HandleRunState(player);
-        UpdateMoveSpeed(player);
+        HandleRunState();
+        UpdateMoveSpeed();
     }
 
     public override void FixedUpdate(PlayerController player)
     {
         player.isGrounded = Physics.Raycast(player.tr.position, Vector3.down, 0.1f);
-        HandleMovement(player);
-        if (!player.isMobileMode)
-        {
-            HandleKeyboardMovement(player);
-        }
+        HandleMovement();
     }
 
     public override void Exit(PlayerController player)
     {
+        InputManager.Instance.MoveInput -= HandleMoveInput;
+        InputManager.Instance.RunPressed -= HandleRunInput;
     }
 
-    private void HandleRunState(PlayerController player)
+    private void HandleMoveInput(Vector3 moveVector)
+    {
+        player.PlayerForce = moveVector * player.moveSpeed;
+        player.rb.AddForce(player.PlayerForce, ForceMode.Force);
+    }
+
+    private void HandleRunInput(bool isRunning)
+    {
+        player.moveSpeed = isRunning ? player.runSpeed : player.walkSpeed;
+    }
+
+    private void HandleRunState()
     {
         if (player.RunButtonHoldTimer > 0)
         {
@@ -50,12 +64,12 @@ public class MoveState : State<PlayerController>
         }
     }
 
-    private void UpdateMoveSpeed(PlayerController player)
+    private void UpdateMoveSpeed()
     {
         player.moveSpeed = player.IsRun ? player.runSpeed : player.walkSpeed;
     }
 
-    private void HandleMovement(PlayerController player)
+    private void HandleMovement()
     {
         Vector3 moveDirection = new Vector3(player.PlayerForce.x, 0, player.PlayerForce.z) * player.moveSpeed;
         player.rb.velocity = new Vector3(moveDirection.x, player.rb.velocity.y, moveDirection.z);
@@ -64,7 +78,7 @@ public class MoveState : State<PlayerController>
         player.anim.SetFloat("run", player.RunAnimSpeed);
     }
 
-    private void HandleKeyboardMovement(PlayerController player)
+    private void HandleKeyboardMovement()
     {
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
