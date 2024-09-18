@@ -1,0 +1,16 @@
+{
+  "stages": [
+    {
+      "stage": 1,
+      "path": "Prefabs/Stages/Stage1"
+    },
+    {
+      "stage": 2,
+      "path": "Prefabs/Stages/Stage2"
+    },
+    {
+      "stage": 3,
+      "path": "Prefabs/Stages/Stage3"
+    }
+  ]
+}
