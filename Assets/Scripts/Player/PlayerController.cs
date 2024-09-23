@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
     public Rigidbody rb;
     public Animator anim;
     public Transform tr;
-    public Collider coll;
+    public CapsuleCollider coll;
     public RaycastHit hit;
     public RaycastHit hit2;
     public JoystickPanel joystickPanel;
@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 0.5f;
     public float runSpeed = 1.0f;
     public float moveSpeed;
+    Vector3 lastMovementDirection;
 
     public Vector3 PlayerForce { get; set; }
     public float rotationSpeed = 5f;
@@ -48,7 +49,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
         tr = GetComponent<Transform>();
-        coll = GetComponent<Collider>();
+        coll = GetComponent<CapsuleCollider>();
 
         InitializeStates();
     }
@@ -65,20 +66,29 @@ public class PlayerController : MonoBehaviour
     {
         stateMachine.CurrentState.Update(this);
 
-        HandleRotation();
-        UpdateGroundedState();
+        HandleRotation();        
     }
 
     private void FixedUpdate()
     {
-        stateMachine.CurrentState.FixedUpdate(this);
+        stateMachine.CurrentState.FixedUpdate(this);        
     }
 
     void RotateCharacter()
     {
         if (PlayerForce != Vector3.zero)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(PlayerForce);
+            Vector3 direction = new Vector3(PlayerForce.x, 0, PlayerForce.z);
+            if (direction.magnitude > 0.01f)
+            {
+                lastMovementDirection = direction;
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                tr.rotation = Quaternion.Slerp(tr.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+            }
+        }
+        else if (lastMovementDirection != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(lastMovementDirection);
             tr.rotation = Quaternion.Slerp(tr.rotation, targetRotation, Time.deltaTime * rotationSpeed);
         }
     }
@@ -90,28 +100,20 @@ public class PlayerController : MonoBehaviour
         IsActive = true;
     }
 
-    private void UpdateGroundedState()
+    private void OnCollisionStay(Collision collision)
     {
-        if (Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * 0.1f + transform.forward * 0.08f, Vector3.down, 0.07f)
-    || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * 0.1f + transform.forward * -0.08f, Vector3.down, 0.07f)
-    || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * -0.1f + transform.forward * 0.08f, Vector3.down, 0.07f)
-    || Physics.Raycast(transform.position + Vector3.up * 0.04f + transform.right * -0.1f + transform.forward * -0.08f, Vector3.down, 0.07f))
+        if (collision.contacts[0].point.y < transform.position.y)
         {
             isGrounded = true;
-            coll.material.dynamicFriction = 1;
-            coll.material.staticFriction = 1;
         }
-        else
-        {
-            isGrounded = false;
-            coll.material.dynamicFriction = 0;
-            coll.material.staticFriction = 0;
-            rayCorrection = 0.025f;
-            anim.SetInteger("up", 4);
-        }
-        anim.SetBool("grounded", isGrounded);
     }
 
+    private void OnCollisionExit(Collision collision)
+    {
+        isGrounded = false;
+        anim.SetInteger("up", 4);
+    }
+    
     public void Straight()
     {
         Vector3 direction = new Vector3(PlayerForce.x, 0f, PlayerForce.z);
