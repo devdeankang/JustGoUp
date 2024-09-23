@@ -7,10 +7,10 @@ public class IdleState : State<PlayerController>
 
     public override void Enter(PlayerController player)
     {
+        player.anim.SetBool("grounded", player.isGrounded);
         player.anim.SetInteger("up", 4);
         player.anim.SetFloat("walk", 0);
-
-        // 카메라의 위치를 캐릭터 뒤로 설정
+                
         if (player.cameraController != null)
         {
             player.cameraController.SetIdleCameraOffset(cameraOffset, cameraRotationOffset);            
