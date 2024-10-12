@@ -61,6 +61,12 @@ sysinfo.txt
 *.unitypackage
 *.app
 
+# Ignore all .meta files
+*.meta
+
+# Ignore Visual Studio config file
+*.vsconfig
+
 # Crashlytics generated file
 crashlytics-build.properties
 
