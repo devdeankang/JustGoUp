@@ -6,35 +6,37 @@ using UnityEngine.UIElements;
 public class JumpState : State<PlayerController>
 {
     PlayerController player;
+    bool isCrawl = false;
 
     public override void Enter(PlayerController player)
     {
         this.player = player;
-        player.IsJump = true;
-
-        InputManager.Instance.JumpPressed += HandleJumpInput;
+        player.IsJump = true;        
+        ExecuteJump();        
     }
 
     public override void Update(PlayerController player)
     {
-        HandleChangeState(player);
+        if(player.isGrounded)
+        {
+            HandleChangeState(player);
+        }
     }
 
     public override void FixedUpdate(PlayerController player)
     {
-        HandleJumpInput();
+        
     }
-
 
     public override void Exit(PlayerController player)
     {
-        InputManager.Instance.JumpPressed -= HandleJumpInput;
+        isCrawl = false;
     }
 
-    private void HandleJumpInput()
+    private void ExecuteJump()
     {
         if (player.isGrounded && player.anim.GetInteger("up") == 4 && player.IsActive)
-        {
+        {   
             if (player.anim.GetFloat("walk") <= 0f)
             {
                 player.anim.Play("jump");
@@ -43,16 +45,31 @@ public class JumpState : State<PlayerController>
             {
                 player.anim.Play("runjumpin");
             }
-            player.IsJump = false;
-
         }
         if (player.isGrounded && player.anim.GetInteger("up") == 3 && player.IsActive)
         {
-            // if (player.anim.GetFloat("walk") == 0f) player.StartCoroutine("Wait", player.waitTime);
+            isCrawl = true;
             player.rayCorrection = 0.025f;
             player.anim.SetInteger("up", 4);
             player.tr.rotation = Quaternion.LookRotation(new Vector3(player.PlayerForce.x, 0f, player.PlayerForce.z), Vector3.up);
-            player.IsJump = false;
+        }
+
+        player.IsJump = false;
+    }
+        
+    void WaitForJumpEnd()
+    {
+        if (isCrawl)
+        {
+            player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.CrawlToUp));
+        }
+        else if (player.anim.GetFloat("walk") <= 0f)
+        {
+            player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.WalkJumpSatates));
+        }
+        else
+        {
+            player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.RunJumpStates));
         }
     }
 }

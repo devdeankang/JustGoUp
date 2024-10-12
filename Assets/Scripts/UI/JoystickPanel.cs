@@ -70,7 +70,6 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
 
     public override void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log("JoystickPanel: OnPointerDown");
         base.OnPointerDown(eventData);
 
         parentPosition = transform.position;
@@ -85,7 +84,6 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
 
     public override void OnPointerUp(PointerEventData eventData)
     {
-        Debug.Log("JoystickPanel: OnPointerUp");
         base.OnPointerUp(eventData);
 
         OnEndDrag(eventData);
@@ -93,13 +91,11 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("JoystickPanel: OnBeginDrag");
         base.OnBeginDrag(eventData);
     }
 
     public override void OnDrag(PointerEventData eventData)
-    {
-        Debug.Log("JoystickPanel: OnDrag");
+    {     
         base.OnDrag(eventData);
 
         Vector2 relativePosition = eventData.position - parentPosition;
@@ -121,8 +117,7 @@ public class JoystickPanel : UIControl, IPointerDownHandler, IPointerUpHandler, 
     }
 
     public override void OnEndDrag(PointerEventData eventData)
-    {
-        Debug.Log("JoystickPanel: OnEndDrag");
+    {        
         base.OnEndDrag(eventData);
 
         if (joystickImage != null)
