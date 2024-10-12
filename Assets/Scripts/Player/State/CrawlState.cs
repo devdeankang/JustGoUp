@@ -7,23 +7,25 @@ using static UnityEngine.PlayerLoop.PreUpdate;
 public class CrawlState : State<PlayerController>
 {
     PlayerController player;
-    bool canUpdate;
-    float delayTime = 0.5f;
-
+    bool canUpdate = false;
+    
     public override void Enter(PlayerController player)
     {
         this.player = player;
+                
         canUpdate = false;
+        player.IsCrawl = false;
+        player.IsTransitionAllowed = false;
         player.anim.SetInteger("up", 3);
         player.rayCorrection = 0.2f;
-
-        InputManager.Instance.CrawlPressed += HandleCrawlInput;
-
-        HandleCrawlInput();
+        
+        SetCrawlState();
+        
+        player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.UpToCrawl));
     }
 
     public override void Update(PlayerController player)
-    {
+    {        
         if (canUpdate)
         {
             HandleChangeState(player);
@@ -37,10 +39,10 @@ public class CrawlState : State<PlayerController>
 
     public override void Exit(PlayerController player)
     {
-        InputManager.Instance.CrawlPressed -= HandleCrawlInput;
+        
     }
 
-    private void HandleCrawlInput()
+    private void SetCrawlState()
     {
         if (player.anim.GetInteger("up") == 3 && player.PlayerForce != Vector3.zero)
         {
@@ -75,13 +77,12 @@ public class CrawlState : State<PlayerController>
         if (player.isGrounded)
         {
             player.rb.velocity = player.PlayerForce * player.anim.GetFloat("speed");
-        }
-        player.StartCoroutine(CrawlDelay());
+        }        
     }
 
-    IEnumerator CrawlDelay()
+    public override IEnumerator WaitForAnimationToEnd(PlayerController player, string stateName, float delayTime = 1)
     {
-        yield return new WaitForSeconds(delayTime);
+        yield return base.WaitForAnimationToEnd(player, stateName, delayTime);
         canUpdate = true;
     }
 }

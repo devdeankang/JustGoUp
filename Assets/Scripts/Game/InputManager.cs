@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 public class InputManager : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class InputManager : MonoBehaviour
     public UITouchButton climbButton;  
         
     private bool isRunning;
+    Vector3 mobileMovement;
+    Vector3 pcMovement;
 
     public Vector3 CurrentMoveVector { get; private set; }
 
@@ -36,36 +39,18 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
-        Vector3 joystickMoveVector = new Vector3(joystickPanel.Horizontal, 0, joystickPanel.Vertical);
-        Vector3 keyboardMoveVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        HandlePCInput(); 
+        HandleMobileInput();
 
-        CurrentMoveVector = joystickMoveVector != Vector3.zero ? joystickMoveVector : keyboardMoveVector;
-
-        if (CurrentMoveVector != Vector3.zero)
-        {
-            MoveInput?.Invoke(CurrentMoveVector);
-        }
-
-        if (Input.GetKey(KeyCode.F2))
-        {
-            if (joystickPanel != null) joystickPanel.gameObject.SetActive(true);
-            HandleMobileInput();
-        }
-        else if (Input.GetKey(KeyCode.F3))
-        {
-            if (joystickPanel != null) joystickPanel.gameObject.SetActive(false);
-            HandlePCInput();
-        }
+        MoveInput?.Invoke(mobileMovement + pcMovement);
     }
-        
 
     private void HandleMobileInput()
     {
-        Vector3 moveVector = new Vector3(joystickPanel.Horizontal, 0, joystickPanel.Vertical);
-        MoveInput?.Invoke(moveVector);
-
+        mobileMovement = new Vector3(joystickPanel.Horizontal, 0, joystickPanel.Vertical);
+        
         if (jumpButton.IsPressed)
-        {
+        {            
             JumpPressed?.Invoke();
         }
 
@@ -93,14 +78,12 @@ public class InputManager : MonoBehaviour
 
     private void HandlePCInput()
     {
-        Vector3 moveVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        MoveInput?.Invoke(moveVector);
-
+        pcMovement = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        
         if (Input.GetKeyDown(KeyCode.Space))
         {
             JumpPressed?.Invoke();
         }
-
 
         if (Input.GetKey(KeyCode.LeftShift))
         {
@@ -123,5 +106,5 @@ public class InputManager : MonoBehaviour
             ClimbPressed?.Invoke();
         }
     }
-
+    
 }

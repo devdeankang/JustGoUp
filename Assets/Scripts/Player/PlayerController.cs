@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     public Transform tr;
     public CapsuleCollider coll;
     public RaycastHit hit;
-    public RaycastHit hit2;
+    public RaycastHit hit2;    
     public JoystickPanel joystickPanel;
     public CameraController cameraController;
 
@@ -18,8 +18,8 @@ public class PlayerController : MonoBehaviour
     public bool isGrounded;
     public int idleTime;
     public float waitTime = 2f;
-    public float walkSpeed = 0.5f;
-    public float runSpeed = 1.0f;
+    float walkSpeed = 1.5f;
+    float runSpeed = 4f;    
     public float moveSpeed;
     Vector3 lastMovementDirection;
 
@@ -27,6 +27,7 @@ public class PlayerController : MonoBehaviour
     public float rotationSpeed = 5f;
 
     public bool isMobileMode = true;
+    public bool IsTransitionAllowed { get; set; } = true;
     public float rayCorrection = 0.025f;
     public StateMachine<PlayerController> stateMachine;
     public Dictionary<State, IState<PlayerController>> stateMap;
@@ -54,12 +55,37 @@ public class PlayerController : MonoBehaviour
         InitializeStates();
     }
 
+    private void OnEnable()
+    {
+        InputManager.Instance.MoveInput += OnMovePressed;        
+        InputManager.Instance.RunPressed += OnRunPressed;
+        InputManager.Instance.JumpPressed += OnJumpPressed;
+        InputManager.Instance.CrawlPressed += OnCrawlPressed;
+        InputManager.Instance.ClimbPressed += OnClimbPressed;
+    }
+
+    private void OnDisable()
+    {
+        InputManager.Instance.MoveInput -= OnMovePressed;
+        InputManager.Instance.RunPressed -= OnRunPressed;
+        InputManager.Instance.JumpPressed -= OnJumpPressed;
+        InputManager.Instance.CrawlPressed -= OnCrawlPressed;
+        InputManager.Instance.ClimbPressed -= OnClimbPressed;
+    }
+
+    void OnMovePressed(Vector3 movement) => PlayerForce = movement * moveSpeed;
+    void OnRunPressed(bool isRunning) => moveSpeed = isRunning ? runSpeed : walkSpeed;
+    void OnJumpPressed() => IsJump = true;
+    void OnCrawlPressed() => IsCrawl = !IsCrawl;
+    void OnClimbPressed() => IsClimb = !IsClimb;
+    
     private void Start()
     {
         IsActive = true;
         RunAnimSpeed = 0;
         RunButtonHoldTime = 0.1f;
         RunButtonHoldTimer = 0f;        
+        anim.SetInteger("up", 4);
     }
 
     private void Update()
@@ -70,9 +96,11 @@ public class PlayerController : MonoBehaviour
     }
 
     private void FixedUpdate()
-    {
-        stateMachine.CurrentState.FixedUpdate(this);        
+    {        
+        UpdateGroundedState();
+        stateMachine.CurrentState.FixedUpdate(this);                
     }
+       
 
     void RotateCharacter()
     {
@@ -100,20 +128,24 @@ public class PlayerController : MonoBehaviour
         IsActive = true;
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void UpdateGroundedState()
     {
-        if (collision.contacts[0].point.y < transform.position.y)
+        float rayDistance = 0.3f;
+        Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
+        Ray ray = new Ray(rayOrigin, Vector3.down);
+
+        if (Physics.Raycast(ray, out RaycastHit hitInfo, rayDistance))
         {
-            isGrounded = true;
+            isGrounded = true;            
+            //Debug.Log("Player is Grounded");
+        }
+        else
+        {
+            isGrounded = false;
+            //Debug.Log("Player is Not Grounded");
         }
     }
 
-    private void OnCollisionExit(Collision collision)
-    {
-        isGrounded = false;
-        anim.SetInteger("up", 4);
-    }
-    
     public void Straight()
     {
         Vector3 direction = new Vector3(PlayerForce.x, 0f, PlayerForce.z);
