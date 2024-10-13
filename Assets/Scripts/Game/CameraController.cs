@@ -2,45 +2,48 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform target;        // 카메라가 따라갈 대상 (캐릭터)
-    public Vector3 offset;          // 카메라와 캐릭터 사이의 초기 거리
-    public float smoothSpeed = 0.125f;  // 카메라의 이동 속도
-    public float rotationSmoothSpeed = 5f;  // 회전 속도
-    public Vector3 rotationOffset;  // 회전 오프셋 (x, y, z)
+    public Transform player;
+    public Vector3 offset = new Vector3(0, 8.79f, -15.57f);
+    public Vector3 rotationOffset = new Vector3(25f, 0, 0);
+    public float rotationSpeed = 3.0f;
+    public float followSpeed = 0.8f;
+        
+    Quaternion initialRotationOffset;
+    Quaternion targetRotation;
+    Vector3 initialOffset;
+    Vector3 currentVelocity;
 
-    private Vector3 initialOffset;  // 초기 오프셋 값 저장
-    private Vector3 initialRotationOffset;  // 초기 오프셋 값 저장
-
-    private void Start()
-    {
-        initialOffset = offset;  // 초기 오프셋 저장
-        initialRotationOffset = rotationOffset;
+    void Start()
+    {        
+        if (player == null)
+        {
+            Debug.LogError("CameraController: Player transform is not assigned!");
+            return;
+        }
+             
+        initialOffset = offset;
+        initialRotationOffset = Quaternion.Euler(rotationOffset);
     }
 
-    private void LateUpdate()
+    void LateUpdate()
     {
-        if (target == null) return;
+        if (player == null)
+        {
+            Debug.LogError("CameraController: Player transform is not assigned!");
+            return;
+        }
 
-        // 현재 타겟의 위치와 회전값을 이용해 카메라의 목표 위치 계산
-        Vector3 desiredPosition = target.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+        Vector3 desiredPosition = player.position + offset;
+        Vector3 smoothedPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref currentVelocity, followSpeed);
         transform.position = smoothedPosition;
 
-        // 타겟(캐릭터)을 바라보도록 회전 (회전 오프셋 추가)
-        Vector3 direction = target.position - transform.position;
-        Quaternion targetRotation = Quaternion.LookRotation(direction) * Quaternion.Euler(rotationOffset);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothSpeed * Time.deltaTime);
+        Quaternion targetRotation = Quaternion.LookRotation(player.position - transform.position);
+        Quaternion adjustedRotation = Quaternion.Euler(rotationOffset.x, targetRotation.eulerAngles.y, 0f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, adjustedRotation, Time.deltaTime * rotationSpeed);
     }
 
-    public void SetIdleCameraOffset(Vector3 newOffset, Vector3 newRotationOffset)
+    public void SetIdleCameraOffset(Vector3 offset)
     {
-        offset = newOffset;  // 새로운 오프셋 설정
-        rotationOffset = newRotationOffset;
-    }
-
-    public void ResetCameraOffset()
-    {
-        offset = initialOffset;  // 초기 오프셋으로 되돌림
-        rotationOffset = initialRotationOffset;         
+        this.offset = offset;
     }
 }

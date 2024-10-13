@@ -17,41 +17,27 @@ public class UITouchArea : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!IsPointerOverUIObject(eventData))
-        {
-            Debug.Log("UITouchArea: OnPointerDown - Starting drag");
-            cameraController.StartDragging();
-        }
+
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (!IsPointerOverUIObject(eventData))
-        {
-            Debug.Log("UITouchArea: OnBeginDrag - Dragging");
-            cameraController.StartDragging();
-        }
+
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!IsPointerOverUIObject(eventData))
-        {
-            Debug.Log("UITouchArea: OnDrag - Dragging");
-            cameraController.StartDragging();
-        }
+
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("UITouchArea: OnEndDrag - Stopping drag");
-        cameraController.StopDragging();
+
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        Debug.Log("UITouchArea: OnPointerUp - Stopping drag");
-        cameraController.StopDragging();
+
     }
 
 

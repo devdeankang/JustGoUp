@@ -73,7 +73,21 @@ public class PlayerController : MonoBehaviour
         InputManager.Instance.ClimbPressed -= OnClimbPressed;
     }
 
-    void OnMovePressed(Vector3 movement) => PlayerForce = movement * moveSpeed;
+    void OnMovePressed(Vector3 movement)
+    { 
+        // 카메라의 방향을 기준으로 입력 좌표를 변환
+        Vector3 cameraForward = cameraController.transform.forward;
+        Vector3 cameraRight = cameraController.transform.right;
+
+        // 카메라가 캐릭터 위에서 바라보므로 수평축만 고려 (y축 제외)
+        cameraForward.y = 0;
+        cameraRight.y = 0;
+
+        // 입력된 좌표를 카메라 기준 좌표로 변환
+        Vector3 adjustedMovement = (cameraForward.normalized * movement.z) + (cameraRight.normalized * movement.x);
+
+        PlayerForce = adjustedMovement * moveSpeed;
+    }
     void OnRunPressed(bool isRunning) => moveSpeed = isRunning ? runSpeed : walkSpeed;
     void OnJumpPressed() => IsJump = true;
     void OnCrawlPressed() => IsCrawl = !IsCrawl;
