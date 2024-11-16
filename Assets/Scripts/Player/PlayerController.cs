@@ -19,9 +19,11 @@ public class PlayerController : MonoBehaviour
     public int idleTime;
     public float waitTime = 2f;
     float walkSpeed = 1.5f;
-    float runSpeed = 4f;    
+    float runSpeed = 3f;
     public float moveSpeed;
     Vector3 lastMovementDirection;
+    int defaultLayer;
+    int crawlingLayer;
 
     public Vector3 PlayerForce { get; set; }
     public float rotationSpeed = 5f;
@@ -88,11 +90,15 @@ public class PlayerController : MonoBehaviour
 
         PlayerForce = adjustedMovement * moveSpeed;
     }
-    void OnRunPressed(bool isRunning) => moveSpeed = isRunning ? runSpeed : walkSpeed;
+    void OnRunPressed(bool isRunning)
+    {
+        moveSpeed = isRunning ? runSpeed : walkSpeed;
+        IsRun = isRunning;
+    }
     void OnJumpPressed() => IsJump = true;
-    void OnCrawlPressed() => IsCrawl = !IsCrawl;
+    void OnCrawlPressed() => IsCrawl = !IsCrawl; 
     void OnClimbPressed() => IsClimb = !IsClimb;
-    
+
     private void Start()
     {
         IsActive = true;
