@@ -5,8 +5,7 @@ using UnityEngine.UIElements;
 
 public class JumpState : State<PlayerController>
 {
-    PlayerController player;
-    bool isCrawl = false;
+    PlayerController player;    
 
     public override void Enter(PlayerController player)
     {
@@ -30,7 +29,7 @@ public class JumpState : State<PlayerController>
 
     public override void Exit(PlayerController player)
     {
-        isCrawl = false;
+        
     }
 
     private void ExecuteJump()
@@ -48,28 +47,12 @@ public class JumpState : State<PlayerController>
         }
         if (player.isGrounded && player.anim.GetInteger("up") == 3 && player.IsActive)
         {
-            isCrawl = true;
             player.rayCorrection = 0.025f;
             player.anim.SetInteger("up", 4);
             player.tr.rotation = Quaternion.LookRotation(new Vector3(player.PlayerForce.x, 0f, player.PlayerForce.z), Vector3.up);
         }
 
         player.IsJump = false;
-    }
-        
-    void WaitForJumpEnd()
-    {
-        if (isCrawl)
-        {
-            player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.CrawlToUp));
-        }
-        else if (player.anim.GetFloat("walk") <= 0f)
-        {
-            player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.WalkJumpSatates));
-        }
-        else
-        {
-            player.StartCoroutine(WaitForAnimationToEnd(player, AnimationStates.RunJumpStates));
-        }
-    }
+    }       
+
 }

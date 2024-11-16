@@ -18,7 +18,17 @@ public class InputManager : MonoBehaviour
     public UITouchButton crawlButton;  
     public UITouchButton climbButton;  
         
-    private bool isRunning;
+    public bool isRunning;
+    public bool isMobileMode = true;
+    bool canJump = true;
+    bool canCrawl = true;
+    bool canClimb = true;
+    float jumpCooldown = 0.5f;
+    float crawlCooldown = 0.5f;
+    float climbCooldown = 0.5f;
+    float jumpCooldownTimer = 0f;
+    float crawlCooldownTimer = 0f;
+    float climbCooldownTimer = 0f;
     Vector3 mobileMovement;
     Vector3 pcMovement;
 
@@ -38,40 +48,89 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
-        HandlePCInput(); 
-        HandleMobileInput();
+        HandleCooldown();
 
-        MoveInput?.Invoke(mobileMovement + pcMovement);
+        if(Input.GetKeyDown(KeyCode.Q))
+        {
+            isMobileMode = !isMobileMode;            
+        }
+        
+        if(isMobileMode)
+        {
+            HandleMobileInput();
+            MoveInput?.Invoke(mobileMovement);
+        }
+        else
+        {
+            HandlePCInput();
+            MoveInput?.Invoke(pcMovement);
+        }        
+    }
+    
+    private void HandleCooldown()
+    {
+        if (!canJump)
+        {
+            jumpCooldownTimer += Time.deltaTime;
+            if (jumpCooldownTimer >= jumpCooldown)
+            {
+                canJump = true;
+                jumpCooldownTimer = 0f;
+            }
+        }
+
+        if (!canCrawl)
+        {
+            crawlCooldownTimer += Time.deltaTime;
+            if (crawlCooldownTimer >= crawlCooldown)
+            {
+                canCrawl = true;
+                crawlCooldownTimer = 0f;
+            }
+        }
+
+        if (!canClimb)
+        {
+            climbCooldownTimer += Time.deltaTime;
+            if (climbCooldownTimer >= climbCooldown)
+            {
+                canClimb = true;
+                climbCooldownTimer = 0f;
+            }
+        }
     }
 
     private void HandleMobileInput()
     {
         mobileMovement = new Vector3(joystickPanel.Horizontal, 0, joystickPanel.Vertical);
         
-        if (jumpButton.IsPressed)
+        if (jumpButton.IsPressed && canJump)
         {            
             JumpPressed?.Invoke();
+            canJump = false;
         }
 
         if (runButton.IsPressed)
         {
             isRunning = true;
-            RunPressed?.Invoke(true);
+            RunPressed?.Invoke(true);            
         }
         else
         {
             isRunning = false;
-            RunPressed?.Invoke(false);
+            RunPressed?.Invoke(false);            
         }
 
-        if (crawlButton.IsPressed)
+        if (crawlButton.IsPressed && canCrawl)
         {
             CrawlPressed?.Invoke();
+            canCrawl = false;
         }
 
-        if (climbButton.IsPressed)
+        if (climbButton.IsPressed && canClimb)
         {
             ClimbPressed?.Invoke();
+            canClimb = false;
         }
     }
 
@@ -79,30 +138,33 @@ public class InputManager : MonoBehaviour
     {
         pcMovement = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             JumpPressed?.Invoke();
+            canJump = false;
         }
 
         if (Input.GetKey(KeyCode.LeftShift))
         {
             isRunning = true;
-            RunPressed?.Invoke(true);
+            RunPressed?.Invoke(true);            
         }
         else
         {
             isRunning = false;
-            RunPressed?.Invoke(false);
+            RunPressed?.Invoke(false);            
         }
 
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKeyDown(KeyCode.C) && canCrawl)
         {
             CrawlPressed?.Invoke();
+            canCrawl = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && canClimb)
         {
             ClimbPressed?.Invoke();
+            canClimb = false;
         }
     }
     

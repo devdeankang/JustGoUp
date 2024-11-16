@@ -39,22 +39,20 @@ public class MoveState : State<PlayerController>
 
         if ((Input.GetKey(KeyCode.LeftShift) || player.IsRun) && player.RunAnimSpeed < 30)
         {
-            player.RunAnimSpeed++;
-            player.anim.SetFloat("Speed", 1f);
+            player.RunAnimSpeed++;            
         }
         else if ((!Input.GetKey(KeyCode.LeftShift) || !player.IsRun) && player.RunAnimSpeed > 0)
         {
-            player.RunAnimSpeed--;
-            player.anim.SetFloat("Speed", 0.5f);
+            player.RunAnimSpeed--;            
         }
     }
 
     private void HandleMovement()
     {
-        Vector3 moveDirection = new Vector3(player.PlayerForce.x, 0, player.PlayerForce.z) * player.moveSpeed;
-        player.rb.velocity = new Vector3(moveDirection.x, player.rb.velocity.y, moveDirection.z);
-        player.PlayerForce = player.rb.velocity;
-        player.anim.SetFloat("walk", player.PlayerForce.magnitude);
+        Vector3 moveDirection = new Vector3(player.PlayerForce.x, 0, player.PlayerForce.z).normalized;        
+        player.rb.velocity = moveDirection * (player.anim.GetFloat("speed") + player.moveSpeed) + (new Vector3(0, player.rb.velocity.y, 0));
+        player.PlayerForce = player.rb.velocity; //
+        player.anim.SetFloat("walk", moveDirection.magnitude);
         player.anim.SetFloat("run", player.RunAnimSpeed);
     }
 }
