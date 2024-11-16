@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
@@ -76,16 +77,13 @@ public class PlayerController : MonoBehaviour
     }
 
     void OnMovePressed(Vector3 movement)
-    { 
-        // 카메라의 방향을 기준으로 입력 좌표를 변환
+    {
         Vector3 cameraForward = cameraController.transform.forward;
         Vector3 cameraRight = cameraController.transform.right;
 
-        // 카메라가 캐릭터 위에서 바라보므로 수평축만 고려 (y축 제외)
         cameraForward.y = 0;
         cameraRight.y = 0;
 
-        // 입력된 좌표를 카메라 기준 좌표로 변환
         Vector3 adjustedMovement = (cameraForward.normalized * movement.z) + (cameraRight.normalized * movement.x);
 
         PlayerForce = adjustedMovement * moveSpeed;
@@ -106,13 +104,18 @@ public class PlayerController : MonoBehaviour
         RunButtonHoldTime = 0.1f;
         RunButtonHoldTimer = 0f;        
         anim.SetInteger("up", 4);
+
+        defaultLayer = LayerMask.NameToLayer(LayerTagManager.PlayerLayer);
+        crawlingLayer = LayerMask.NameToLayer(LayerTagManager.CrawlingPlayerLayer);
+        gameObject.layer = defaultLayer;
     }
 
     private void Update()
     {
         stateMachine.CurrentState.Update(this);
 
-        HandleRotation();        
+        HandleRotation();
+        HandleLayerCollision();
     }
 
     private void FixedUpdate()
@@ -120,7 +123,20 @@ public class PlayerController : MonoBehaviour
         UpdateGroundedState();
         stateMachine.CurrentState.FixedUpdate(this);                
     }
-       
+
+    void HandleLayerCollision()
+    {
+        if (anim.GetInteger("up") < 4)
+        {
+            int nonCrawlObstacle = LayerMask.NameToLayer(LayerTagManager.NonCrawlObstacleLayer);
+            LayerTagManager.SetLayerRecursively(gameObject, crawlingLayer);
+            Physics.IgnoreLayerCollision(crawlingLayer, nonCrawlObstacle , true);
+        }
+        else
+        {
+            LayerTagManager.SetLayerRecursively(gameObject, defaultLayer);
+        }
+    }
 
     void RotateCharacter()
     {
@@ -157,12 +173,10 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hitInfo, rayDistance))
         {
             isGrounded = true;            
-            //Debug.Log("Player is Grounded");
         }
         else
         {
             isGrounded = false;
-            //Debug.Log("Player is Not Grounded");
         }
     }
 
