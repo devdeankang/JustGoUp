@@ -89,8 +89,7 @@ public abstract class State<T> : IState<T> where T : class
 
         AnimatorStateInfo stateInfo = player.anim.GetCurrentAnimatorStateInfo(0);
         if (!stateInfo.IsName(stateName))
-        {
-            // stateName != 현재프레임이라면, 한  프레임 더 대기 후 갱신
+        {            
             yield return null;
             stateInfo = player.anim.GetCurrentAnimatorStateInfo(0);
         }

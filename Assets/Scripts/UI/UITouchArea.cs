@@ -5,7 +5,6 @@ using UnityEngine.EventSystems;
 public class UITouchArea : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerUpHandler
 {
     public CameraController cameraController;
-    private bool isPointerOverUI = false;
 
     void Start()
     {

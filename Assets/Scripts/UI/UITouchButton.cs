@@ -82,7 +82,7 @@ public class UITouchButton : UIControl
 
     public override void OnPointerDown(PointerEventData eventArgs)
     {
-        Debug.Log("UITouchButton: OnPointerDown");
+        //Debug.Log("UITouchButton: OnPointerDown");
         base.OnPointerDown(eventArgs);
 
         if (!isEnabled || currentCoolDown > 0) return;
@@ -98,7 +98,7 @@ public class UITouchButton : UIControl
 
     public override void OnPointerUp(PointerEventData eventArgs)
     {
-        Debug.Log("UITouchButton: OnPointerUp");
+        //Debug.Log("UITouchButton: OnPointerUp");
         base.OnPointerUp(eventArgs);
 
         if (!isEnabled || currentCoolDown > 0) return;
@@ -176,19 +176,19 @@ public class UITouchButton : UIControl
 
     public override void OnBeginDrag(PointerEventData eventArgs)
     {
-        Debug.Log("UITouchButton: OnBeginDrag");
+        //Debug.Log("UITouchButton: OnBeginDrag");
         base.OnBeginDrag(eventArgs);
     }
 
     public override void OnEndDrag(PointerEventData eventArgs)
     {
-        Debug.Log("UITouchButton: OnEndDrag");
+        //Debug.Log("UITouchButton: OnEndDrag");
         base.OnEndDrag(eventArgs);
     }
 
     public override void OnDrag(PointerEventData eventData)
     {
-        Debug.Log("UITouchButton: OnDrag");
+        //Debug.Log("UITouchButton: OnDrag");
         base.OnDrag(eventData);
     }
 }

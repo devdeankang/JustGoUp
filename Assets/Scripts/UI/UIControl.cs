@@ -18,31 +18,31 @@ public abstract class UIControl : MonoBehaviour, IPointerDownHandler, IPointerUp
 
     public virtual void OnBeginDrag(PointerEventData eventArgs)
     {
-        Debug.Log($"{gameObject.name}: OnBeginDrag");
+        //Debug.Log($"{gameObject.name}: OnBeginDrag");
         OnBeginDragEvent?.Invoke(eventArgs);
     }
 
     public virtual void OnEndDrag(PointerEventData eventArgs)
     {
-        Debug.Log($"{gameObject.name}: OnEndDrag");
+        //Debug.Log($"{gameObject.name}: OnEndDrag");
         OnEndDragEvent?.Invoke(eventArgs);
     }
 
     public virtual void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log($"{gameObject.name}: OnPointerDown");
+        //Debug.Log($"{gameObject.name}: OnPointerDown");
         OnPointerDownEvent?.Invoke(eventData);
     }
 
     public virtual void OnPointerUp(PointerEventData eventData)
     {
-        Debug.Log($"{gameObject.name}: OnPointerUp");
+        //Debug.Log($"{gameObject.name}: OnPointerUp");
         OnPointerUpEvent?.Invoke(eventData);
     }
 
     public virtual void OnDrag(PointerEventData eventData)
     {
-        Debug.Log($"{gameObject.name}: OnDrag");
+        //Debug.Log($"{gameObject.name}: OnDrag");
         OnDragEvent?.Invoke(eventData);
     }
 }
