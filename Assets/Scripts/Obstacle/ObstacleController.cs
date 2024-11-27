@@ -1,58 +1,65 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ObstacleController : MonoBehaviour
 {
-    private IObstacleStrategy strategy;
-    private ICollisionStrategy collisionStrategy;
-    public bool isActive = false;    
+    public List<StrategyConfig> strategiesConfig;
+    private List<IObstacleStrategy> strategies = new List<IObstacleStrategy>();
 
     void Start()
     {
-        if (isActive && strategy != null)
+        InitializeStrategies();
+    }
+
+    void Update()
+    {
+        ExecuteStrategies();
+    }
+
+    private void InitializeStrategies()
+    {
+        foreach (var config in strategiesConfig)
         {
-            ExecuteStrategy();
+            var strategy = StrategyFactory.CreateStrategy(config);
+            if (strategy != null)
+            {
+                strategies.Add(strategy);
+            }
         }
     }
 
-    public void SetStrategy(IObstacleStrategy newStrategy)
+    private void ExecuteStrategies()
     {
-        strategy = newStrategy;
-    }
-
-    public void SetCollisionStrategy(ICollisionStrategy newCollisionStrategy)
-    {
-        collisionStrategy = newCollisionStrategy;
-    }
-
-    public void ExecuteStrategy()
-    {
-        if (strategy != null)
+        foreach (var strategy in strategies)
         {
             strategy.Execute(this);
         }
     }
 
-    void OnCollisionEnter(Collision collision)
+    public void LoadStageStrategies(string stageName)
     {
-        if (collisionStrategy != null)
-        {            
-            collisionStrategy.ExecuteCollisionResponse(collision, collision.rigidbody);
+        strategies.Clear();
+
+        var configs = Resources.LoadAll<StrategyConfig>($"ObstacleConfigs/{stageName}"); // ##
+        foreach (var config in configs)
+        {
+            var strategy = StrategyFactory.CreateStrategy(config);
+            if (strategy != null)
+            {
+                strategies.Add(strategy);
+            }
         }
     }
 
-    public void ActivateObstacle()
+    public void AddTimeLimitedStrategy(StrategyConfig innerConfig, float timeLimit)
     {
-        isActive = true;
-        ExecuteStrategy();
-    }
-
-    public void DeactivateObstacle()
-    {
-        isActive = false;
-    }
-
-    public void ResetObstacle()
-    {
-        transform.position = Vector3.zero;
+        TimeLimitedConfig timeLimitedConfig = StrategyFactory.CreateTimeLimitedConfig(innerConfig, timeLimit);
+        strategiesConfig.Add(timeLimitedConfig);
+        var strategy = StrategyFactory.CreateStrategy(timeLimitedConfig);
+        if (strategy != null)
+        {
+            strategies.Add(strategy);
+        }
     }
 }
