@@ -2,29 +2,28 @@ using UnityEngine;
 
 public class SwingStrategy : IObstacleStrategy, ICollisionStrategy
 {
-    float swingSpeed;
-    float swingAngle;
-    float swingForce;
+    SwingConfig config;
 
-    public SwingStrategy(float swingForce = 1f, float swingSpeed = 1f, float swingAngle = 30f)
+    public SwingStrategy(StrategyConfig config)
     {
-        this.swingForce = swingForce;
-        this.swingSpeed = swingSpeed;
-        this.swingAngle = swingAngle;
+        this.config = config as SwingConfig;
     }
 
     public void Execute(ObstacleController obstacle)
     {
-        float angle = Mathf.Sin(Time.time * swingSpeed) * swingAngle;
+        if (config == null) return;
+
+        float angle = Mathf.Sin(Time.time * config.swingSpeed) * config.swingAngle;
         obstacle.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     public void ExecuteCollisionResponse(Collision coll, Rigidbody target_rb)
     {
+        if (config == null) return;
+
         Vector3 contactPoint = coll.contacts[0].point;
         Vector3 swingDirection = (target_rb.transform.position - contactPoint).normalized;
-
-        Vector3 knockbackDirection = Quaternion.Euler(0, swingAngle, 0) * swingDirection;
-        target_rb.AddForce(knockbackDirection * swingForce, ForceMode.Impulse);
+        Vector3 knockbackDirection = Quaternion.Euler(0, config.swingAngle, 0) * swingDirection;
+        target_rb.AddForce(knockbackDirection * config.swingForce, ForceMode.Impulse);
     }
 }

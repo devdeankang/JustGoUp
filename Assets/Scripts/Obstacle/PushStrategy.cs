@@ -2,36 +2,46 @@ using UnityEngine;
 
 public class PushStrategy : IObstacleStrategy, ICollisionStrategy
 {
-    float pushSpeed;
-    float pushForce;
-    Vector3 pushDirection;
-
-    public PushStrategy(float pushSpeed, Vector3 pushDirection, float pushForce = 1f)
+    PushConfig config;
+    
+    public PushStrategy(StrategyConfig config)
     {
-        this.pushForce = pushForce;
-        this.pushSpeed = pushSpeed;
-        this.pushDirection = pushDirection;
+        this.config = config as PushConfig;
     }
 
     public void Execute(ObstacleController obstacle)
     {
+        if (config == null) return;
+
         Rigidbody rb = obstacle.GetComponent<Rigidbody>();
         if (rb == null)
         {
             rb = obstacle.gameObject.AddComponent<Rigidbody>();
         }
 
-        rb.MovePosition(obstacle.transform.position + pushDirection * pushSpeed * Time.deltaTime);
+        Vector3 direction = config.pushDirection;
 
-        obstacle.transform.Translate(pushDirection * pushSpeed * Time.deltaTime);
+        var player = GameObject.FindWithTag(LayerTagManager.PlayerTag);
+        if (player != null)
+        {
+            direction = (player.transform.position - obstacle.transform.position).normalized;
+        }
+
+        rb.MovePosition(obstacle.transform.position + direction * config.pushSpeed * Time.deltaTime);
     }
-    
+
     public void ExecuteCollisionResponse(Collision coll, Rigidbody target_rb)
     {
-        Vector3 forceDirection = coll.gameObject.transform.position - coll.collider.transform.position;
-        forceDirection.y = 0f;
+        if (config == null) return;
 
-        target_rb.AddForce(forceDirection.normalized * pushForce, ForceMode.Impulse);
+        Vector3 forceDirection = config.pushDirection;
+
+        if (forceDirection == Vector3.zero)
+        {
+            Vector3 contactPoint = coll.contacts[0].point;
+            forceDirection = (target_rb.transform.position - contactPoint).normalized;
+        }
+
+        target_rb.AddForce(forceDirection * config.pushForce, ForceMode.Impulse);
     }
-
 }
