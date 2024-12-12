@@ -46,7 +46,7 @@ public abstract class State<T> : IState<T> where T : class
             player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Move]);
             return;
         }
-        else
+        else if (player.stateMachine.CurrentState != player.stateMap[PlayerController.State.Idle])
         {
             player.stateMachine.ChangeState(player.stateMap[PlayerController.State.Idle]);
         }
