@@ -5,5 +5,6 @@ public class DisappearConfig : StrategyConfig
 {
     public float disappearTime;
     public float reappearTime;
-    public bool loopDisappear;
+    public bool loopDisappear = true;
+    public bool isPermanentlyInactive = false;
 }

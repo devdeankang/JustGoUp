@@ -2,28 +2,46 @@ using UnityEngine;
 
 public class SwingStrategy : IObstacleStrategy, ICollisionStrategy
 {
-    SwingConfig config;
+    private SwingConfig _config;
+    private Animator _animator;    
 
     public SwingStrategy(StrategyConfig config)
     {
-        this.config = config as SwingConfig;
+        this._config = config as SwingConfig;
     }
 
-    public void Execute(ObstacleController obstacle)
+    public void Execute(ObstacleController obstacle, bool hasAnimator = true)
     {
-        if (config == null) return;
+        if (_config == null) return;
+        if(_animator == null) _animator = obstacle.GetComponent<Animator>();
+        
+        if (hasAnimator)
+        {
+            _animator.speed = _config.swingSpeed;
+            AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
 
-        float angle = Mathf.Sin(Time.time * config.swingSpeed) * config.swingAngle;
-        obstacle.transform.rotation = Quaternion.Euler(0, 0, angle);
+            if (!stateInfo.IsName(AnimationStates.Swing))
+            {
+                _animator.Play(AnimationStates.Swing, 0, 0f);
+            }
+        }
+        else
+        {
+            float angle = Mathf.Sin(Time.time * _config.swingSpeed) * _config.swingAngle;
+            obstacle.transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
     }
 
-    public void ExecuteCollisionResponse(Collision coll, Rigidbody target_rb)
+    public void ExecuteCollisionResponse(ObstacleController obstacle, Collision coll, Rigidbody targetRb)
     {
-        if (config == null) return;
+        if (_config == null) return;
 
-        Vector3 contactPoint = coll.contacts[0].point;
-        Vector3 swingDirection = (target_rb.transform.position - contactPoint).normalized;
-        Vector3 knockbackDirection = Quaternion.Euler(0, config.swingAngle, 0) * swingDirection;
-        target_rb.AddForce(knockbackDirection * config.swingForce, ForceMode.Impulse);
+        if (coll.gameObject.CompareTag(LayerTagManager.PlayerTag))
+        {
+            Vector3 contactPoint = coll.contacts[0].point;
+            Vector3 knockbackDirection = (targetRb.transform.position - contactPoint).normalized;
+            
+            obstacle.HandleCollisionWithPlayer(_config.damageValue, _config.swingForce, knockbackDirection);
+        }
     }
 }

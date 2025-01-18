@@ -2,10 +2,10 @@ using UnityEngine;
 
 public interface IObstacleStrategy
 {
-    void Execute(ObstacleController obstacle);
+    void Execute(ObstacleController obstacle, bool hasAnimator = true);
 }
 
 public interface ICollisionStrategy
 {
-    void ExecuteCollisionResponse(Collision coll, Rigidbody target_rb);
+    void ExecuteCollisionResponse(ObstacleController obstacle, Collision coll, Rigidbody target_rb = null);
 }

@@ -4,49 +4,65 @@ using UnityEngine;
 
 public class DisappearStrategy : IObstacleStrategy
 {
-    DisappearConfig config;
-    float timer;
-    bool isDisappeared;
+    private DisappearConfig config;
+    private bool isActive = true;
+    private bool isRunning = false; // 코루틴 실행 상태
 
     public DisappearStrategy(StrategyConfig config)
     {
         this.config = config as DisappearConfig;
-        timer = 0f;
-        isDisappeared = false;
     }
 
-    public void Execute(ObstacleController obstacle)
+    public void Execute(ObstacleController obstacle, bool hasAnimator)
     {
-        if (config == null) return;
+        if (!isActive || isRunning) return;
+        obstacle.StartCoroutine(DisappearRoutine(obstacle));
+    }
 
-        timer += Time.deltaTime;
+    private IEnumerator DisappearRoutine(ObstacleController obstacle)
+    {
+        isRunning = true;
 
-        if (!isDisappeared && timer >= config.disappearTime)
+        SetVisibility(obstacle, false);
+        yield return new WaitForSeconds(config.disappearTime);
+
+        if (config.isPermanentlyInactive)
         {
             obstacle.gameObject.SetActive(false);
-            isDisappeared = true;
-            timer = 0f;
-        }
-        else if (isDisappeared && config.reappearTime > 0 && timer >= config.reappearTime)
-        {
-            obstacle.gameObject.SetActive(true);
-            isDisappeared = false;
+            isRunning = false;
 
-            if (!config.loopDisappear)
-            {
-                timer = 0f;
-            }
+            yield break;
+        }
+
+        SetVisibility(obstacle, true);
+
+        if (config.loopDisappear)
+        {
+            yield return new WaitForSeconds(config.reappearTime);
+            isRunning = false;
+            obstacle.StartCoroutine(DisappearRoutine(obstacle));
+        }
+        else
+        {
+            isRunning = false;
         }
     }
 
-    public void UpdateConfig(float newDisappearTime, float newReappearTime, bool newLoopDisappear)
+    private void SetVisibility(ObstacleController obstacle, bool isVisible)
     {
-        if (config != null)
+        foreach (var renderer in obstacle.GetComponentsInChildren<Renderer>())
         {
-            config.disappearTime = newDisappearTime;
-            config.reappearTime = newReappearTime;
-            config.loopDisappear = newLoopDisappear;
-            timer = 0f;
+            renderer.enabled = isVisible;
         }
+
+        foreach (var collider in obstacle.GetComponentsInChildren<Collider>())
+        {
+            collider.enabled = isVisible;
+        }
+    }
+
+    public void SetPermanentInactive(bool value)
+    {
+        config.isPermanentlyInactive = value;
     }
 }

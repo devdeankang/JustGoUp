@@ -13,6 +13,8 @@ public static class StrategyFactory
         RegisterStrategy<SpikesConfig>(config => new SpikesStrategy(config as SpikesConfig));
         RegisterStrategy<SwingConfig>(config => new SwingStrategy(config as SwingConfig));
         RegisterStrategy<PushConfig>(config => new PushStrategy(config as PushConfig));
+        RegisterStrategy<DisappearConfig>(config => new DisappearStrategy(config as DisappearConfig));
+        RegisterStrategy<TurningGrinderConfig>(config => new TurningGrinderStrategy(config as TurningGrinderConfig));
 
         RegisterStrategy<TimeLimitedConfig>(config =>
         {
