@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class CameraController : MonoBehaviour
 {
@@ -23,11 +24,17 @@ public class CameraController : MonoBehaviour
     private GameObject lastObstacle;
     private bool isZoomed = false;
 
+    private Vector3 shakeOffset;
+    private float shakeDuration = 0f;
+    private float shakeMagnitude = 0.1f;
+    private Vector3 originalPosition;
+
     void Start()
     {
         initialOffset = offset;
         zoomedOffset = offset;
         initialRotationOffset = Quaternion.Euler(rotationOffset);
+        originalPosition = transform.localPosition;
     }
 
     void Update()
@@ -37,39 +44,8 @@ public class CameraController : MonoBehaviour
             player = GameObject.FindWithTag(LayerTagManager.PlayerTag).transform;
         }
 
-        Vector3 directionToPlayer = player.position - transform.position;
-        RaycastHit hit;
-
-        if (Physics.Raycast(player.position, -directionToPlayer.normalized, out hit, directionToPlayer.magnitude))
-        {
-            foreach (string tag in ignoreTags)
-            {
-                if (hit.collider.CompareTag(tag))
-                {
-                    return;
-                }
-                
-            }
-
-            if (lastObstacle == hit.collider.gameObject && isZoomed)
-            {
-                return;
-            }
-
-            lastObstacle = hit.collider.gameObject;
-            Vector3 hitPoint = hit.point + directionToPlayer.normalized * 0.5f;
-            zoomedOffset = hitPoint;
-            isZoomed = true;
-        }
-        else
-        {
-            if (isZoomed)
-            {
-                lastObstacle = null;
-                zoomedOffset = initialOffset;
-                isZoomed = false;
-            }
-        }
+        HandleZoom();
+        HandleShake();
     }
 
     void LateUpdate()
@@ -98,9 +74,69 @@ public class CameraController : MonoBehaviour
             transform.position = smoothedPosition;
         }
 
+        transform.position += shakeOffset;
         Quaternion targetRotation = Quaternion.LookRotation(player.position - transform.position);
         Quaternion adjustedRotation = Quaternion.Euler(rotationOffset.x, targetRotation.eulerAngles.y, 0f);
         transform.rotation = Quaternion.Slerp(transform.rotation, adjustedRotation, Time.deltaTime * rotationSpeed);
+    }
+
+    private void HandleZoom()
+    {
+        Vector3 directionToPlayer = player.position - transform.position;
+        RaycastHit hit;
+
+        if (Physics.Raycast(player.position, -directionToPlayer.normalized, out hit, directionToPlayer.magnitude))
+        {
+            foreach (string tag in ignoreTags)
+            {
+                if (hit.collider.CompareTag(tag))
+                {
+                    return;
+                }
+            }
+
+            if (lastObstacle == hit.collider.gameObject && isZoomed)
+            {
+                return;
+            }
+
+            lastObstacle = hit.collider.gameObject;
+            Vector3 hitPoint = hit.point + directionToPlayer.normalized * 0.5f;
+            zoomedOffset = hitPoint;
+            isZoomed = true;
+        }
+        else
+        {
+            if (isZoomed)
+            {
+                lastObstacle = null;
+                zoomedOffset = initialOffset;
+                isZoomed = false;
+            }
+        }
+    }
+
+    private void HandleShake()
+    {
+        if (shakeDuration > 0)
+        {
+            shakeDuration -= Time.deltaTime;
+            shakeOffset = Random.insideUnitSphere * shakeMagnitude;
+        }
+        else
+        {
+            shakeDuration = 0f;
+            shakeOffset = Vector3.zero;
+        }
+    }
+
+    public void ShakeCamera(float duration, float magnitude)
+    {
+        if (shakeDuration > 0) return;
+
+        shakeDuration = duration;
+        shakeMagnitude = magnitude;
+        originalPosition = transform.localPosition;
     }
 
     public void SetIdleCameraOffset(Vector3 offset)

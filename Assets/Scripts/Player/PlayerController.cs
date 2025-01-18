@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    float currentHealth = 10000f; // ## temp 임시값
+
     public Rigidbody rb;
     public Animator anim;
     public Transform tr;
@@ -14,6 +16,8 @@ public class PlayerController : MonoBehaviour
     public RaycastHit hit2;    
     public JoystickPanel joystickPanel;
     public CameraController cameraController;
+    Renderer[] renderers;
+    Coroutine invincibilityCoroutine;
 
     public bool IsActive { get; set; }
     public bool isGrounded;
@@ -21,6 +25,7 @@ public class PlayerController : MonoBehaviour
     public float waitTime = 2f;
     float walkSpeed = 1.5f;
     float runSpeed = 3f;
+    float jumpMultiplier = 1.5f;
     public float moveSpeed;
     Vector3 lastMovementDirection;
     int defaultLayer;
@@ -31,7 +36,11 @@ public class PlayerController : MonoBehaviour
 
     public bool isMobileMode = true;
     public bool IsTransitionAllowed { get; set; } = true;
+    public bool isInvincible = false;
+    public float invincibleDuration = 2f;
+    float blinkInterval = 0.1f;
     public float rayCorrection = 0.025f;
+    
     public StateMachine<PlayerController> stateMachine;
     public Dictionary<State, IState<PlayerController>> stateMap;
 
@@ -54,6 +63,7 @@ public class PlayerController : MonoBehaviour
         anim = GetComponent<Animator>();
         tr = GetComponent<Transform>();
         coll = GetComponent<CapsuleCollider>();
+        renderers = GetComponentsInChildren<Renderer>();
 
         InitializeStates();
     }
@@ -121,7 +131,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {        
         UpdateGroundedState();
-        stateMachine.CurrentState.FixedUpdate(this);                
+        stateMachine.CurrentState.FixedUpdate(this);
     }
 
     void HandleLayerCollision()
@@ -155,6 +165,69 @@ public class PlayerController : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(lastMovementDirection);
             tr.rotation = Quaternion.Slerp(tr.rotation, targetRotation, Time.deltaTime * rotationSpeed);
         }
+    }
+
+    public void ApplyHit(float damage, float knockbackForce, Vector3 collisionPoint)
+    {
+        if (isInvincible) return;
+        if (stateMachine.CurrentState == stateMap[State.Hit]) return;
+
+        if (stateMap[State.Hit] is SafeState<PlayerController> safeState &&
+            safeState.GetWrappedState() is HitState hitState)
+        {
+            hitState.SetHitData(damage, knockbackForce, collisionPoint);
+            stateMachine.ChangeState(stateMap[State.Hit]);
+        }
+    }
+
+    public void TakeDamage(float damage)
+    {           
+        currentHealth -= damage;
+        Debug.Log($"플레이어가 {damage}의 피해를 입었습니다. 남은 체력 : {currentHealth}");
+
+        if(currentHealth <= 0)
+        {
+            stateMachine.ChangeState(stateMap[State.Dead]);
+            Debug.Log("DeadState로 전환합니다.");
+        }
+    }
+
+    public void StartInvincibility()
+    {
+        if(!isInvincible)
+        {
+            isInvincible = true;
+            if(invincibilityCoroutine != null)
+            {
+                StopCoroutine(invincibilityCoroutine);
+            }
+            invincibilityCoroutine = StartCoroutine(InvincibilityRoutine());
+        }
+    }
+    
+    IEnumerator InvincibilityRoutine()
+    {
+        float elapsedTime = 0;
+        bool isVisible = true;
+
+        while (elapsedTime < invincibleDuration)
+        {
+            foreach(var renderer in renderers)
+            {
+                renderer.enabled = isVisible;
+            }
+
+            isVisible = !isVisible;
+            yield return new WaitForSeconds(blinkInterval);
+            elapsedTime += blinkInterval;
+        }
+
+        foreach(var renderer in renderers)
+        {
+            renderer.enabled = true;
+        }
+        isInvincible = false;
+        invincibilityCoroutine = null;
     }
 
     public IEnumerator Wait(float waitTime)
@@ -191,7 +264,7 @@ public class PlayerController : MonoBehaviour
 
     public void Jump(float jumpforce)
     {
-        rb.AddForce(Vector3.up * jumpforce + (tr.forward * anim.GetFloat("run") * 0.125f), ForceMode.Impulse);
+        rb.AddForce(Vector3.up * jumpforce * jumpMultiplier + (tr.forward * anim.GetFloat("run") * 0.125f), ForceMode.Impulse);
     }
 
     void HandleRotation()
