@@ -60,4 +60,9 @@ public class SafeState<T> : IState<T> where T : class
     {
         return _wrappedState.GetName();
     }
+
+    public IState<T> GetWrappedState()
+    {
+        return _wrappedState;
+    }
 }
