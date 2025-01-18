@@ -14,6 +14,10 @@ public static class AnimationStates
     public const string FreeFall = "freefall";
     public const string RunjumpOut = "IP_runjumpAOUT";
     public const string Land = "land";
+    
+    public const string Spike = "Spike";    
+    public const string TurningGrinder = "TurningGrinder";
+    public const string Swing = "Swing";
 
     public static bool IsInFreeFallState(Animator animator, int layerIndex = 0)
     {
